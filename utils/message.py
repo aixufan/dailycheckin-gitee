@@ -56,17 +56,15 @@ def message2telegram(tg_bot_token, tg_user_id, content):
 
 def message2dingtalk(dingtalk_secret, dingtalk_access_token, content):
     print("Dingtalk 推送开始")
-    timestamp = str(round(time.time() * 1000))
-    secret_enc = dingtalk_secret.encode("utf-8")
-    string_to_sign = "{}\n{}".format(timestamp, dingtalk_secret)
-    string_to_sign_enc = string_to_sign.encode("utf-8")
-    hmac_code = hmac.new(secret_enc, string_to_sign_enc, digestmod=hashlib.sha256).digest()
-    sign = urllib.parse.quote_plus(base64.b64encode(hmac_code))
+    #timestamp = str(round(time.time() * 1000))
+    #secret_enc = dingtalk_secret.encode("utf-8")
+    #string_to_sign = "{}\n{}".format(timestamp, dingtalk_secret)
+    #string_to_sign_enc = string_to_sign.encode("utf-8")
+    #hmac_code = hmac.new(secret_enc, string_to_sign_enc, digestmod=hashlib.sha256).digest()
+    #sign = urllib.parse.quote_plus(base64.b64encode(hmac_code))
     send_data = {"msgtype": "text", "text": {"content": content}}
     requests.post(
-        url="https://oapi.dingtalk.com/robot/send?access_token={0}&timestamp={1}&sign={2}".format(
-            dingtalk_access_token, timestamp, sign
-        ),
+        url="https://oapi.dingtalk.com/robot/send?access_token={0}".format(dingtalk_access_token),
         headers={"Content-Type": "application/json", "Charset": "UTF-8"},
         data=json.dumps(send_data),
     )
@@ -199,10 +197,10 @@ def push_message(content_list: list, notice_info: dict):
             except Exception as e:
                 print("企业微信应用消息推送失败", e)
     for message in message_list:
-        if dingtalk_access_token and dingtalk_secret:
+        if dingtalk_access_token:
             try:
                 message2dingtalk(
-                    dingtalk_secret=dingtalk_secret, dingtalk_access_token=dingtalk_access_token, content=message
+                    dingtalk_secret="", dingtalk_access_token=dingtalk_access_token, content=message
                 )
             except Exception as e:
                 print("钉钉推送失败", e)
