@@ -123,55 +123,7 @@ class Music163CheckIn:
         else:
             return "签到失败: " + ret["message"]
 
-    def task(self, session, csrf):
-        url = "https://music.163.com/weapi/v6/playlist/detail?csrf_token=" + csrf
-        recommend_url = "https://music.163.com/weapi/v1/discovery/recommend/resource"
-        music_lists = []
-        res = session.post(url=recommend_url, data=self.encrypt('{"csrf_token":"' + csrf + '"}'), headers=self.headers)
-        ret = res.json()
-        if ret["code"] != 200:
-            print("获取推荐歌曲失败: ", str(ret["code"]), ":", ret["message"])
-        else:
-            lists = ret["recommend"]
-            music_lists = [(d["id"]) for d in lists]
-        music_id = []
-        for m in music_lists:
-            res = session.post(
-                url=url, data=self.encrypt(json.dumps({"id": m, "n": 1000, "csrf_token": csrf})), headers=self.headers,
-            )
-            ret = json.loads(res.text)
-            for i in ret["playlist"]["trackIds"]:
-                music_id.append(i["id"])
-        post_data = json.dumps(
-            {
-                "logs": json.dumps(
-                    list(
-                        map(
-                            lambda x: {
-                                "action": "play",
-                                "json": {
-                                    "download": 0,
-                                    "end": "playend",
-                                    "id": x,
-                                    "sourceId": "",
-                                    "time": 240,
-                                    "type": "song",
-                                    "wifi": 0,
-                                },
-                            },
-                            random.sample(music_id, 420 if len(music_id) > 420 else len(music_id)),
-                        )
-                    )
-                )
-            }
-        )
-        res = session.post(url="http://music.163.com/weapi/feedback/weblog", data=self.encrypt(post_data))
-        ret = res.json()
-        if ret["code"] == 200:
-            return "刷听歌量成功"
-        else:
-            return "刷听歌量失败: " + ret["message"]
-
+    
     def get_level(self, session, csrf, login_data):
         url = "https://music.163.com/weapi/user/level?csrf_token=" + csrf
         res = session.post(url=url, data=login_data, headers=self.headers)
@@ -189,7 +141,8 @@ class Music163CheckIn:
         res_task = ""
         if csrf:
             res_sign = self.sign(session=session)
-            res_task = self.task(session=session, csrf=csrf)
+            #res_task = self.task(session=session, csrf=csrf)
+            res_task = "已关闭"
         msg = (
             f"帐号信息: {nickname}\n当前等级: {level}\n当前听歌数量: {now_play_count}\n"
             f"升级需听歌数量: {next_play_count - now_play_count}\n签到状态: {res_sign}\n刷歌状态: {res_task}"
